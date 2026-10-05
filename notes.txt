@@ -1,0 +1,79 @@
+TO RUN:
+  open terminal
+  sh ~/go_pi5.py  (enter password)
+  DISPLAY=:0 python3 sf2_player_main.py
+
+
+============================
+  GUI IDEAS
+============================
+
+PROGRAM ORGANIZATION:
+  1) SF2 programs in SF2_PRESETS bank (can not be edited)
+  2) User programs (Single/Combi) store in USER Bank
+  A user bank is just a file with a sequential numbering system
+      ~/banks/1-MyPiano, ~/bank/2-Piano_Strings Split ....
+      A user Program contains name of sf2 file/instrument name/
+      effects on/off, effects settings, Combi Settings (layer and split info)
+  3) We will also store global information if the user chooses SAVE GLOBAL SETTINGS
+
+Hardware: LCD Screen is 480 x 320
+          NO encoder is needed, scrolling done on touch screen
+          Helpful to have a HOME button and MENU button
+          Home takes you to home screen, MENU to MENU screen, maybe a BACK button as well
+MODES:
+  SINGLE / COMBI / GLOBAL / EFFECTS / PLAYER
+  Single: plays a single instrument
+  Combi: Can combine 2 instruments as a split or layer
+  Global: Set master volume, midi channel, transpose
+  Effects: Enable/Disable Reverb/Chorus and make settings changes
+  Player: Play a global midi song
+
+  1) Splash screen - name of app and revision
+  2) HOME screen 
+       Display Program Bank/Program/Name
+               SF2 filename
+               Master Volume, Midi Channel, Transpose
+      Press MENU button
+  3) MENU SCREEN: Tiles for system functions:
+      HOME   |  SINGLE EDIT  |  COMBI EDIT
+      GLOBAL |  EFFECTS      |  PLAYER
+  4) SINGLE EDIT SCREEN:
+     CHOOSE PROGRAM | EDIT PROGRAM
+     CHANGE BANK    | SAVE EDITS
+     choose prgram - a pop up or other window will show a scrollable
+        list of programs with on the side scoll arrows
+        highlighting a program chooses it
+
+  [Piano 1]        ^  (Piano 1 is reverse text/highlited)
+  Piano 2          |
+  Electric Piano
+  Harpsichord      |
+  Xylopohone       v
+
+    Choose bank also scrollable with list of banks
+    We will create a User Bank to store edited Singles/Combis (HOw?)
+    Save Edits will let you choose a User bank to store edits to
+  Possible Program edits:
+    New name, program volume, velocity curve, transpose, effects assignment
+       single/combi effects settings -stored in user bank 
+  5) COMBI EDIT
+     We want MIDI range for each COMBI part.  For now only 2 COMBI parts.
+     We could also have instead a velocity range as well.
+     SELECTION is Similar to GUI selection of program 1/program 2
+        MIDI ranges (Learn would be nice)
+        Velocity ranges 
+        Volume for each Sound (we would need to scale volume in the MIDI implementation)
+        Effects for EACH sound -
+           we would need to implement multi-channel audio rendering - an AI prompt response
+           explains this:
+
+           PROMPT:
+           Using Pyfluidsynth to control fluidsynth on Raspberry Pi, is it possible to have instument on midi channel 1 send output to one effects bus and have another instrument on midi channel 2 send to a different effects bus. Effects bus in this case is an external LV2 effect that is connected with jack and pipewire. 
+
+           ANSWER (partial):
+           FluidSynth natively supports multi-channel audio rendering, meaning you can split its audio output into separate stereo pairs per MIDI channel. When using JACK (which integrates seamlessly with PipeWire on Raspberry Pi), FluidSynth exposes these distinct stereo pairs as individual output ports. You can then route each pair to a separate external LV2 effect plugin.
+
+  5) Global as before: Master volulme / Midi Chann / Transponse
+      and load SF2 file 
+  6) Player as brefore - select song, play or stop (with tiles/buttons)
