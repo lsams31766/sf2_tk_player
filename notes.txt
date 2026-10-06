@@ -77,3 +77,15 @@ MODES:
   5) Global as before: Master volulme / Midi Chann / Transponse
       and load SF2 file 
   6) Player as brefore - select song, play or stop (with tiles/buttons)
+
+
+Raspberry PI 5 PINOUT to DAC PCM5102
+PIN  DESC     TO
+---  ---      ---
+1    3V3      XMST OF DAC
+2    5V       VIN OF DAC
+6    GND      GND OF DAC
+12   GPIO18   BCK OF DAC
+14   GND      SCK OF DAC
+35   GPIO19   LCK of DAC
+40   GPIO21   DIN OF DAC
