@@ -3,6 +3,21 @@ TO RUN:
   sh ~/go_pi5.py  (enter password)
   DISPLAY=:0 python3 sf2_player_main.py
 
+To INSTALL:
+sudo apt install pipewire-audio-client-libraries jalv
+sudo apt install python3-pil
+sudo apt install python3-numpy
+sudo apt install python3-pip
+pip install pyfluidsynth --break-system-packages
+sudo apt install python3-mido python3-rtmidi
+pip install python-osc --break-system-packages
+  # disable fluidsynth from starting up
+sudo systemctl --global disable fluidsynth.service
+sudo systemctl stop fluidsynth.service
+sudo systemctl mask fluidsynth.service
+
+To Run Fluidsynth alone
+fluidsynth -a alsa -o audio.alsa.device=hw:0,0 /usr/share/sounds/sf2/FluidR3_GM.sf2
 
 ============================
   GUI IDEAS

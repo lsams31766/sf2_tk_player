@@ -1,11 +1,17 @@
 import platform
 import customtkinter as ctk
+from sf2_player_fs import init_fluidsynth, fs_get_program_list, set_preset
+from sf2_player_effects import start_effects_containers, set_effect_configuration
+import sys
+# Force all print statements to instantly write out without caching
+sys.stdout.reconfigure(line_buffering=True)
+
 
 # Set global appearance settings
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
 
-class App(ctk.CTk):
+class App(ctk.CTk): 
 
   def __init__(self):
     super().__init__()
@@ -16,7 +22,6 @@ class App(ctk.CTk):
     self.font_small = ctk.CTkFont(family="Helvetica", size=14, weight="bold")
 
     self.current_program_index = 0
-    self.program_list = ["Piano 1", "Piano 2", "Honkey Tonk", "Organ"]
 
     # --- Platform Detection & Window Setup ---
     current_os = platform.system()
@@ -34,10 +39,15 @@ class App(ctk.CTk):
       
       # Removes window title bars and borders for a true kiosk/fullscreen look
       self.overrideredirect(True)
+      #init_fluidsynth(effect_callback=start_effects_containers)
+      init_fluidsynth()
+      self.program_list = fs_get_program_list()
+
     else:
       print("Running on Mac (or non-Pi): Setting fixed window size")
       self.geometry("450x550")
       self.resizable(False, False)
+
 
     # Launch Function 1 (Splash Screen) on startup
     self.splash()
@@ -117,64 +127,125 @@ class App(ctk.CTk):
         command=self.single_select, width=200)
     self.btn_single_select.pack()
 
+###################################
+
+
   def single_select(self):
     print("SINGLE Select selected!")
     self.clear_window()
 
     # 1. Title at the top
     title_label = ctk.CTkLabel(self, text="SINGLE Select", font=self.font)
-    title_label.pack(side="top", pady=20)
+    title_label.pack(side="top", pady=(8, 4))
 
     # 4. Save button at the bottom of the screen
-    btn_save = ctk.CTkButton(self, text="Save & Return", command=self.save_program_selection,
-        width=200)
-    btn_save.pack(side="bottom", pady=20)
+    btn_save = ctk.CTkButton(
+        self,
+        text="Save & Return",
+        command=self.save_program_selection,
+        width=180,
+    )
+    btn_save.pack(side="bottom", pady=8)
 
-    # 3. Middle frame containing the label and dropdown, centered vertically
-    center_frame = ctk.CTkFrame(self, fg_color="transparent")
-    center_frame.pack(expand=True, padx=5, pady=10)
+    # Middle container frame
+    middle_frame = ctk.CTkFrame(self, fg_color="transparent")
+    middle_frame.pack(expand=True, pady=2)
 
-    label_select = ctk.CTkLabel(center_frame, text="Select a Program:", font=self.font_small)
-    label_select.pack(side="left", padx=(0, 15))
+    # Horizontally centered label: "Select a Program:"
+    label_select = ctk.CTkLabel(
+        middle_frame, text="Select a Program:", font=self.font_small
+    )
+    label_select.pack(anchor="center", pady=(0, 4))
 
-    # Create a StringVar initialized to the currently saved program
+    # Row frame to hold the 340px scrollable list and the up/down buttons side-by-side
+    row_frame = ctk.CTkFrame(middle_frame, fg_color="transparent")
+    row_frame.pack()
+
+    # Scrollable selection box (340px width, 200px height)
+    self.list_frame = ctk.CTkScrollableFrame(
+        row_frame, width=340, height=200, fg_color="transparent"
+    )
+    self.list_frame.pack(side="left", padx=(0, 6))
+
+    # Vertical container for Arrow Up and Arrow Down buttons
+    btn_col_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
+    btn_col_frame.pack(side="left", fill="y")
+
+    btn_up = ctk.CTkButton(
+        btn_col_frame,
+        text="▲",
+        font=self.font_small,
+        width=40,
+        height=95,
+        command=lambda: self.scroll_list(-3),
+    )
+    btn_up.pack(side="top", pady=(0, 5))
+
+    btn_down = ctk.CTkButton(
+        btn_col_frame,
+        text="▼",
+        font=self.font_small,
+        width=40,
+        height=95,
+        command=lambda: self.scroll_list(3),
+    )
+    btn_down.pack(side="top")
+
     initial_program = self.program_list[self.current_program_index]
     self.selected_program_var = ctk.StringVar(value=initial_program)
 
-    # Create the combobox
-    self.program_combo = ctk.CTkComboBox(center_frame, values=self.program_list,
-        variable=self.selected_program_var, font=self.font_small, state="readonly")
-    self.program_combo.pack(side="left") 
+    self.program_buttons = []
+    for prog in self.program_list:
+      is_selected = prog == initial_program
+      btn_color = "green" if is_selected else "blue"
+      hover_color = "darkgreen" if is_selected else "darkblue"
 
-    # Force the text to render immediately upon loading
-    self.program_combo.set(initial_program)
+      btn = ctk.CTkButton(
+          self.list_frame,
+          text=prog,
+          font=self.font_small,
+          fg_color=btn_color,
+          hover_color=hover_color,
+          height=32,
+          command=lambda p=prog: self.select_program(p),
+      )
+      btn.pack(fill="x", pady=2)
+      self.program_buttons.append((prog, btn))
+
     self.update_idletasks()
 
+  ###################
+
   def save_program_selection(self):
-    # Get the value from our StringVar (or combobox)
-    selected_item = self.selected_program_var.get()
+    # Get the value from our StringVar
+    selected = self.selected_program_var.get()
 
-    if selected_item in self.program_list:
-      self.current_program_index = self.program_list.index(selected_item)
-      print(
-          f"Saved Program Index: {self.current_program_index} ({selected_item})"
-      )
+    if selected in self.program_list:
+      self.current_program_index = self.program_list.index(selected)
+      print(f"Saved Program Index: {self.current_program_index} ({selected})")
 
+    set_preset(self.current_program_index)
     # Return to single mode
     self.action_single_mode()
 
-  def save_program_selection(self):
-    selected_item = self.program_combo.get()
+  def select_program(self, program_name):
+    self.selected_program_var.set(program_name)
+    if program_name in self.program_list:
+      self.current_program_index = self.program_list.index(program_name)
 
-    if selected_item in self.program_list:
-      # Save the index to our tracking variable
-      self.current_program_index = self.program_list.index(selected_item)
-      print(
-          f"Saved Program Index: {self.current_program_index} ({selected_item})"
-      )
+    # Update button colors: selected = green, others = blue
+    for prog, btn in self.program_buttons:
+      if prog == program_name:
+        btn.configure(fg_color="green", hover_color="darkgreen")
+      else:
+        btn.configure(fg_color="blue", hover_color="darkblue")
 
-    # Return to single mode
-    self.action_single_mode()
+  def scroll_list(self, direction):
+    """Scrolls the list up or down when arrow buttons are pressed."""
+    try:
+      self.list_frame._parent_canvas.yview_scroll(direction, "units")
+    except Exception:
+      pass
 
   def action_combi_mode(self):
     print("COMBI Mode selected!")
