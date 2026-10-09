@@ -67,7 +67,8 @@ def midi_listener_thread():
             for msg in inport:
                 if not midi_thread_running:
                     break
-                
+
+                #print(f'note_on channel {msg.channel} note {msg.note}')
                 if input_filter_channel is not None:
                    if hasattr(msg, 'channel') and msg.channel != input_filter_channel:
                        continue 
@@ -340,6 +341,13 @@ def get_midi_chan_display():
         return 'OMNI'
     return str(input_filter_channel + 1)
 
+def set_midi_chan(new_chan):
+    global input_filter_channel
+    if str(new_chan) == "OMNI":
+        input_filter_channel = -1
+    else:
+        input_filter_channel = int(new_chan) - 1
+
 def lower_midi_chan():
     global input_filter_channel
     if input_filter_channel is None:
@@ -362,6 +370,11 @@ def raise_midi_chan():
 
 def get_transpose():
     return midi_transpose
+
+def set_midi_transpose(val):
+    global midi_transpose
+    n = int(val)
+    midi_transpose = n
 
 def raise_midi_transpose():
     global midi_transpose

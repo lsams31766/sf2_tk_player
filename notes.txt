@@ -1,7 +1,10 @@
 TO RUN:
-  open terminal
-  sh ~/go_pi5.py  (enter password)
-  DISPLAY=:0 python3 sf2_player_main.py
+  Double Click icon Sf2 player on LCD
+
+  To see terminal:
+  sh ~/go_pi5.sh (enter password)
+  tail -f /home/larry/sf2_player.log
+
 
 To INSTALL:
 sudo apt install pipewire-audio-client-libraries jalv

@@ -3,8 +3,10 @@ import customtkinter as ctk
 from sf2_player_fs import init_fluidsynth, fs_get_program_list, set_preset
 from sf2_player_effects import start_effects_containers, set_effect_configuration
 import sys
+from sf2_global_edit import GlobalEdit
 # Force all print statements to instantly write out without caching
 sys.stdout.reconfigure(line_buffering=True)
+
 
 
 # Set global appearance settings
@@ -48,6 +50,7 @@ class App(ctk.CTk):
       self.geometry("450x550")
       self.resizable(False, False)
 
+    self.global_edit_screen = GlobalEdit(self)
 
     # Launch Function 1 (Splash Screen) on startup
     self.splash()
@@ -96,7 +99,7 @@ class App(ctk.CTk):
     btn_global = ctk.CTkButton(
         grid_frame,
         text="GLOBAL Settings",
-        command=self.global_edit,
+        command=self.global_edit_screen.draw,
         width=160,
     )
     btn_global.grid(row=1, column=0, padx=40, pady=10)
@@ -298,149 +301,6 @@ class App(ctk.CTk):
   def action_combi_mode(self):
     print("COMBI Mode selected!")
     # Add your logic for feature two here
-
-  def global_edit(self):
-    print("GLOBAL EDIT selected!")
-    self.clear_window()
-
-    # Title at the top
-    title_label = ctk.CTkLabel(self, text="GLOBAL Edit", font=self.font)
-    title_label.pack(side="top", pady=(8, 4))
-
-    # Save button at the bottom of the screen
-    btn_save = ctk.CTkButton(self, text="MENU", command=self.menu_screen, width=180)
-    btn_save.pack(side="bottom", pady=8)
-
-    large_font = ("Helvetica", 24)
-    # Middle container frame
-    row_frame = ctk.CTkFrame(self, fg_color="transparent")
-    row_frame.pack(pady=20, padx=20, fill="x")
-    
-    # Configure the grid columns inside the frame
-    row_frame.grid_columnconfigure(0, weight=0) 
-    row_frame.grid_columnconfigure(1, weight=1) 
-    row_frame.grid_columnconfigure(2, weight=0)
-    row_frame.grid_columnconfigure(3, weight=1)
-    
-    # === Volume in row 0 ===
-    label = ctk.CTkLabel(row_frame, text="Volume:", font=large_font)
-    label.grid(row=0, column=0, pady=20, padx=(50,10), sticky="w") 
-    
-    self.volume_entry = ctk.CTkEntry(row_frame, width=50, font=large_font)
-    self.volume_entry.grid(row=0, column=1, sticky="w") # 1. Grid it first!
-    self._set_volume_number(50)                           # 2. Then set its value safely.
-    
-    down_button = ctk.CTkButton(row_frame, text="▼", font=large_font, width=45, 
-            height=45, command=self.decrease_volume)
-    down_button.grid(row=0, column=2, padx=(10, 5), sticky="w")
-    up_button = ctk.CTkButton(row_frame, text="▲", font=large_font, width=45, 
-            height=45, command=self.increase_volume)
-    up_button.grid(row=0, column=3, sticky="w")
-    
-    # === Midi Channel in row 1 ===
-    label2 = ctk.CTkLabel(row_frame, text="Midi Channel:", font=large_font)
-    label2.grid(row=1, column=0, padx=(50,10), sticky="w") 
-    
-    self.channel_entry = ctk.CTkEntry(row_frame, width=100, font=large_font)
-    self.channel_entry.grid(row=1, column=1, sticky="w") # Grid it first!
-    self._set_channel_number("OMNI")
-    
-    down_button2 = ctk.CTkButton(row_frame, text="▼", font=large_font, width=45, 
-            height=45, command=self.decrease_channel)
-    down_button2.grid(row=1, column=2, padx=(10, 5), sticky="w")
-    up_button2 = ctk.CTkButton(row_frame, text="▲", font=large_font, width=45, 
-            height=45, command=self.increase_channel)
-    up_button2.grid(row=1, column=3, sticky="w")
-    # Transpose in row 2
-    label3 = ctk.CTkLabel(row_frame, text="Transpose:", font=large_font)
-    label3.grid(row=2, column=0, pady=20, padx=(50,10), sticky="w") 
-    self.transpose_entry = ctk.CTkEntry(row_frame, width=100, font=large_font)
-    self._set_transpose_number("0")
-    self.transpose_entry.grid(row=2, column=1, sticky="w") 
-    down_button3 = ctk.CTkButton(row_frame, text="▼", font=large_font, width=45, 
-            height=45, command=self.decrease_transpose)
-    down_button3.grid(row=2, column=2, padx=(10, 5), sticky="w")
-    up_button3 = ctk.CTkButton(row_frame, text="▲", font=large_font, width=45, 
-            height=45, command=self.increase_transpose)
-    up_button3.grid(row=2, column=3, sticky="w")
-
-    self.update_idletasks()
-
-  def _set_volume_number(self, number: int):
-    self.volume_entry.delete(0, "end")
-    self.volume_entry.insert(0, str(number))
-
-  def increase_volume(self):
-    current = int(self.volume_entry.get())
-    if current < 100:
-      self._set_volume_number(current + 1)
-
-  def decrease_volume(self):
-    current = int(self.volume_entry.get())
-    if current > 0:
-      self._set_volume_number(current - 1)
-
-  def _set_channel_number(self, val: str):
-    self.channel_entry.delete(0, "end")
-    self.channel_entry.insert(0, val)
-
-  def increase_channel(self):
-    current = self.channel_entry.get()
-    if current == "OMNI":
-      self._set_channel_number("1")
-    else: # from 1 to 16
-      n = int(current)
-      if n < 16:
-        n += 1
-        self._set_channel_number(str(n))
-
-  def decrease_channel(self):
-    current = self.channel_entry.get()
-    if current == "OMNI":
-      return
-    else: # from 1 to 16
-      n = int(current)
-      if n == 1: 
-        self._set_channel_number("OMNI")
-      else:
-        n -= 1
-        self._set_channel_number(str(n))
-
-  def _set_transpose_number(self, val: str):
-    self.transpose_entry.delete(0, "end")
-    self.transpose_entry.insert(0, val)
-
-  def increase_transpose(self):
-    current = self.transpose_entry.get()
-    # either 0 or -1, -2, ... or +1, +2...
-    if current == "0":
-      self._set_transpose_number("+1")
-    elif current == '-1':
-       self._set_transpose_number("0")
-    else:
-      n = int(current)
-      n += 1
-      if n < 37:
-        s = str(n)
-        if n > 0:
-          s = '+' + s
-        self._set_transpose_number(s)
-
-  def decrease_transpose(self):
-    current = self.transpose_entry.get()
-    # either 0 or -1, -2, ... or +1, +2...
-    if current == "0":
-      self._set_transpose_number("-1")
-    elif current == '+1':
-       self._set_transpose_number("0")
-    else:
-      n = int(current)
-      n -= 1
-      if n > -37:
-        s = str(n)
-        if n > 0:
-          s = '+' + s
-        self._set_transpose_number(s)
 
 if __name__ == "__main__":
   app = App()
