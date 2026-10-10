@@ -4,6 +4,7 @@ from sf2_player_fs import init_fluidsynth, fs_get_program_list, set_preset
 from sf2_player_effects import start_effects_containers, set_effect_configuration
 import sys
 from sf2_global_edit import GlobalEdit
+from sf2_effects_edit import EffectsEnable
 # Force all print statements to instantly write out without caching
 sys.stdout.reconfigure(line_buffering=True)
 
@@ -51,6 +52,7 @@ class App(ctk.CTk):
       self.resizable(False, False)
 
     self.global_edit_screen = GlobalEdit(self)
+    self.effects_enable_screen = EffectsEnable(self)
 
     # Launch Function 1 (Splash Screen) on startup
     self.splash()
@@ -105,7 +107,7 @@ class App(ctk.CTk):
     btn_global.grid(row=1, column=0, padx=40, pady=10)
 
     btn_effects = ctk.CTkButton(
-        grid_frame, text="EFFECTS", command=self.action_combi_mode, width=160
+        grid_frame, text="EFFECTS", command=self.effects_enable_screen.draw, width=160
     )
     btn_effects.grid(row=1, column=1, padx=40, pady=10)
 

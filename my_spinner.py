@@ -6,7 +6,7 @@ import customtkinter as ctk
 
 class MySpinner:
     def __init__(self, ctx_instance, spin_list, start_value, large_font, 
-                 lbl_text, command=None):
+                 lbl_text, command=None, padx=20, minsize=20):
         self.ctx = ctx_instance
         if start_value not in spin_list:
             print(f'ERROR: {start_value} not in list')
@@ -16,14 +16,16 @@ class MySpinner:
         self.large_font = large_font
         self.lbl_text = lbl_text
         self.command = command
+        self.padx = padx
+        self.minsize = minsize
 
     def draw(self):
         # container frame
         row_frame = ctk.CTkFrame(self.ctx, fg_color="transparent")
-        row_frame.pack(pady=5, padx=20, fill="x")
+        row_frame.pack(pady=5, padx=self.padx, fill="x")
         
         # Configure the grid columns inside the frame
-        row_frame.grid_columnconfigure(0, weight=0, minsize=170) 
+        row_frame.grid_columnconfigure(0, weight=0, minsize=self.minsize) 
         row_frame.grid_columnconfigure(1, weight=1) 
         row_frame.grid_columnconfigure(2, weight=0)
         row_frame.grid_columnconfigure(3, weight=1)

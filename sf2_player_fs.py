@@ -230,7 +230,7 @@ def list_instruments_in_bank(target_bank=0):
     and instrument names matching the target_bank.
     """
     global current_program_list
-    print(f"\n--- Instruments in Bank {target_bank} (SoundFont ID: {current_sf_id}) ---")
+    #print(f"\n--- Instruments in Bank {target_bank} (SoundFont ID: {current_sf_id}) ---")
     
     current_program_list = [] # clear out old list
     try:
@@ -239,7 +239,7 @@ def list_instruments_in_bank(target_bank=0):
         
         for bank, program, name in preset_list:
             if bank == target_bank:
-                print(f"Program {program:03d}: {name}")
+                #print(f"Program {program:03d}: {name}")
                 current_program_list.append({"program": program, "name": name})
                 
     except AttributeError:
@@ -248,7 +248,7 @@ def list_instruments_in_bank(target_bank=0):
         for program in range(128):
             name = fs.sfpreset_name(current_sf_id, target_bank, program)
             if name:  # If a preset exists at this slot, it returns the string name
-                print(f"Program {program:03d}: {name}")
+                #print(f"Program {program:03d}: {name}")
                 current_program_list.append({"program": program, "name": name})
                 
     if not current_program_list:

@@ -5,7 +5,6 @@ from sf2_player_fs import set_gain, set_midi_chan, set_midi_transpose
 
 
 class GlobalEdit:
-
   def __init__(self, ctx_instance):
     self.ctx = ctx_instance
 
@@ -21,10 +20,6 @@ class GlobalEdit:
 
   def draw(self):
     print("GLOBAL EDIT selected!")
-
-    # REMOVED self.save_current_values() from here!
-    # We only save values when leaving the screen, not when entering.
-
     self.ctx.clear_window()
 
     # Title at the top
@@ -43,7 +38,7 @@ class GlobalEdit:
     vol_list = [str(n) for n in range(0, 101, 10)]
     self.vol_spinner = MySpinner(
         self.ctx, vol_list, self.vol_value, large_font, "Volume:",
-        command=self.on_volume_changed
+        command=self.on_volume_changed, padx=20, minsize=170
     )
     self.vol_spinner.draw()
 
@@ -53,7 +48,7 @@ class GlobalEdit:
       chan_list.append(str(n))
     self.chan_spinner = MySpinner(
         self.ctx, chan_list, self.chan_value, large_font, "MIDI Channel:",
-        command=self.on_chan_changed
+        command=self.on_chan_changed, padx=20, minsize=170
     )
     self.chan_spinner.draw()
 
@@ -63,7 +58,7 @@ class GlobalEdit:
       transpose_list.append("+" + str(n))
     self.transpose_spinner = MySpinner(
         self.ctx, transpose_list, self.transpose_value, large_font, "Transpose:",
-        command=self.on_transpose_changed
+        command=self.on_transpose_changed, padx=20, minsize=170
     )
     self.transpose_spinner.draw()
 
