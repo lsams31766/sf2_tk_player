@@ -156,19 +156,11 @@ class EffectsEdit:
         btn_container = ctk.CTkFrame(outer_frame, fg_color="transparent")
         btn_container.pack(side="left", fill="y")
 
-        '''
         btn_page_up = ctk.CTkButton(
             btn_container, text="▲", font=large_font, width=50, height=80,
             command=self.page_up_event
         )
-        '''
-        self.btn_page_up = ctk.CTkButton(
-            btn_container, text="▲", font=large_font, width=50, height=80
-        )
-        self.btn_page_up.bind("<ButtonPress-1>", self.on_press)
-        self.btn_page_up.bind("<ButtonRelease-1>", self.on_release)
-        self.btn_page_up.pack(pady=(0, 10))
-        
+        btn_page_up.pack(pady=(0, 10))
         btn_page_down = ctk.CTkButton(
             btn_container, text="▼", font=large_font, width=50, height=80,
             command=self.page_down_event
@@ -201,8 +193,8 @@ class EffectsEdit:
             if j >= self.items_per_page or index + 1 >= len(self.settings):
                 break
 
-    def on_press(self,evnt):
-        print('on_press')
+    def on_press(self,delta):
+        print(f'on_press delta:{delta}')
 
     def on_release(self,evnt):
         print('on_release')

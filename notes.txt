@@ -14,6 +14,7 @@ sudo apt install python3-pip
 pip install pyfluidsynth --break-system-packages
 sudo apt install python3-mido python3-rtmidi
 pip install python-osc --break-system-packages
+sudo pip install evdev --break-system-packages
   # disable fluidsynth from starting up
 sudo systemctl --global disable fluidsynth.service
 sudo systemctl stop fluidsynth.service
@@ -21,8 +22,8 @@ sudo systemctl mask fluidsynth.service
 
 sudo apt install ladspa-sdk swh-plugins tap-plugins
 sudo apt install lilv-utils
-
-
+sudo apt install fomp lv2-dev
+  TEST: pw-jack jalv http://drobilla.net/plugins/fomp/reverb
 
 To Run Fluidsynth alone
 fluidsynth -a alsa -o audio.alsa.device=hw:0,0 /usr/share/sounds/sf2/FluidR3_GM.sf2

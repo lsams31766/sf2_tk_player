@@ -5,6 +5,8 @@ from sf2_player_effects import start_effects_containers, set_effect_configuratio
 import sys
 from sf2_global_edit import GlobalEdit
 from sf2_effects_edit import EffectsEnable
+from touch_input import TouchState
+
 # Force all print statements to instantly write out without caching
 sys.stdout.reconfigure(line_buffering=True)
 
@@ -25,6 +27,7 @@ class App(ctk.CTk):
     self.font_small = ctk.CTkFont(family="Helvetica", size=14, weight="bold")
 
     self.current_program_index = 0
+    self.touch = TouchState(self)   # one shared touch reader for the app
 
     # --- Platform Detection & Window Setup ---
     current_os = platform.system()
