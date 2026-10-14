@@ -5,7 +5,8 @@ import time
 
 # --- Configuration Constants ---
 FLUIDSYNTH_CLIENT_NAME = "fluidsynth"
-DAC_SINK_NAME = "alsa_output.platform-soc_sound.stereo-fallback"
+#DAC_SINK_NAME = "alsa_output.platform-soc_sound.stereo-fallback"
+DAC_SINK_NAME = "alsa_output.platform-soc_107c000000_sound.stereo-fallback"
 
 REVERB_PLUGIN_URI = "http://drobilla.net/plugins/fomp/reverb"
 REVERB_CLIENT_NAME = "reverb"
@@ -32,31 +33,58 @@ ALL_POSSIBLE_LINKS = [
     (f"{CHORUS_CLIENT_NAME}:out", f"{REVERB_CLIENT_NAME}:in_r"),
 ]
 
+def debug_print_pw_ports():
+    """Query and print all active PipeWire input and output ports to verify instantiation."""
+    print("\n--- PIPEWIRE DEBUG: CURRENT PORTS ---")
+    try:
+        res_out = subprocess.run(["pw-link", "-o"], capture_output=True, text=True, check=True)
+        print("--- Output Ports (-o) ---")
+        print(res_out.stdout.strip())
+    except Exception as e:
+        print(f"Could not fetch output ports: {e}")
+
+    try:
+        res_in = subprocess.run(["pw-link", "-i"], capture_output=True, text=True, check=True)
+        print("\n--- Input Ports (-i) ---")
+        print(res_in.strip() if hasattr(res_in, 'strip') else res_in.stdout.strip())
+    except Exception as e:
+        print(f"Could not fetch input ports: {e}")
+    print("-------------------------------------\n")
+
 def start_effects_containers(max_wait=5.0, poll_interval=0.25):
-    """Launch both reverb and chorus jalv containers in the background with stdin support."""
+    """Launch both reverb and chorus jalv containers, capturing all output to debug crashes."""
     global jalv_reverb_process, jalv_chorus_process
 
     print(f"Starting effects containers...")
     try:
         jalv_reverb_process = subprocess.Popen(
-            ["pw-jack", "jalv", REVERB_PLUGIN_URI],
+            ["pw-jack", "jalv", "-n", REVERB_CLIENT_NAME, REVERB_PLUGIN_URI],
             stdin=subprocess.PIPE,
-            stdout=subprocess.DEVNULL, 
-            stderr=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,  # Capture combined stdout/stderr here
+            stderr=subprocess.STDOUT, 
             text=True
         )
-    except FileNotFoundError as e:
+        # Give it a moment to run or crash
+        time.sleep(0.5)
+        if jalv_reverb_process.poll() is not None:
+            output = jalv_reverb_process.stdout.read()
+            print(f"ERROR: Reverb jalv crashed instantly!\n{output}")
+    except Exception as e:
         print(f"Could not launch reverb jalv ({e}).")
 
     try:
         jalv_chorus_process = subprocess.Popen(
-            ["pw-jack", "jalv", CHORUS_PLUGIN_URI],
+            ["pw-jack", "jalv", "-n", CHORUS_CLIENT_NAME, CHORUS_PLUGIN_URI],
             stdin=subprocess.PIPE,
-            stdout=subprocess.DEVNULL, 
-            stderr=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,  # Capture combined stdout/stderr here
+            stderr=subprocess.STDOUT, 
             text=True
         )
-    except FileNotFoundError as e:
+        time.sleep(0.5)
+        if jalv_chorus_process.poll() is not None:
+            output = jalv_chorus_process.stdout.read()
+            print(f"ERROR: Chorus jalv crashed instantly!\n{output}")
+    except Exception as e:
         print(f"Could not launch chorus jalv ({e}).")
 
     atexit.register(stop_effects_containers)
@@ -70,6 +98,7 @@ def start_effects_containers(max_wait=5.0, poll_interval=0.25):
         print("Effects containers initialized successfully.")
     else:
         print("Warning: Some effect ports failed to appear.")
+
 
 def set_effect_parameter(effect_type, symbol, value):
     """
@@ -147,7 +176,7 @@ def set_effect_configuration(config_name):
         print(f"Configuration '{config_name}' applied successfully.")
     else:
         print(f"Warning: Configuration '{config_name}' applied with some routing errors.")
-
+    #debug_print_pw_ports()
 # --- Shared DRY Helper Functions ---
 
 def _wait_for_ports(client_name, port_suffixes, max_wait, poll_interval):

@@ -7,7 +7,7 @@ reverb_controls = [
     {"name":"rt_low", "min":1, "max":8, "default": 2.75, "inc": .25},
     {"name":"rt_mid", "min":1, "max":8, "default": 2.75, "inc": .25},
     {"name":"damping", "min":1500, "max":24000, "default": 6000, "inc": 1000},
-    {"name":"f1_freq", "min":40, "max":10000, "default": 159, "inc": .100},
+    {"name":"f1_freq", "min":40, "max":10000, "default": 159, "inc": 100},
     {"name":"f1_gain", "min":-20, "max":20, "default": 0, "inc": 5},
     {"name":"f2_freq", "min":40, "max":10000, "default": 2514.87, "inc": 100},
     {"name":"f2_gain", "min":-20, "max":20, "default": 0, "inc": 5},
@@ -16,7 +16,7 @@ reverb_controls = [
 
 #chorus controls
 chorus_controls = [
-    {"name":"delay", "min":0.0, "max":30, "default": 1, "inc": 1},
+    {"name":"delay", "min":0, "max":30, "default": 1, "inc": 1},
     {"name":"mod_freq_1", "min":0.003, "max":10.0, "default": 0.25, "inc": .1},
     {"name":"mod_amp_1", "min":0.0, "max":10.0, "default": 1.0, "inc": .5},
     {"name":"mod_freq_2", "min":0.01, "max":30.0, "default": 0.125, "inc": .1},

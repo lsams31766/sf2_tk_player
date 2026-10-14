@@ -3,6 +3,7 @@
 # contains a label, text input, and up/down buttons
 # version 1, you give a list that it can chose from
 import customtkinter as ctk
+import bisect
 
 class MySpinner:
     def __init__(self, ctx_instance, spin_list, start_value, large_font, 
@@ -65,3 +66,55 @@ class MySpinner:
             self._set_value(self.spin_list[self.cur_index])
             if self.command:
                 self.command(self.spin_list[self.cur_index])
+
+    @staticmethod
+    def check_number_type(value_str):
+        # First, try to see if it's an integer
+        try:
+            val = int(value_str)
+            if str(val) == value_str:
+                return "Integer"
+        except ValueError:
+            pass  # Not an int, move on to check float
+
+        # Second, try to see if it's a float
+        try:
+            val = float(value_str)
+            return "Float"
+        except ValueError:
+            pass  # Not a number at all
+
+        return "String"
+
+    @staticmethod
+    def insert_unique_sorted(sorted_list, val):
+        # Find the index where 'val' should be inserted
+        idx = bisect.bisect_left(sorted_list, val)
+        # Check if the value already exists at that position
+        if idx < len(sorted_list) and sorted_list[idx] == val:
+            return False  # Not inserted        
+        # Insert the value in order
+        sorted_list.insert(idx, val)
+        return True
+
+
+    @staticmethod
+    def make_spinner_list(controls,default):
+        #{"name":"delay", "min":0.02, "max":0.1, "default": 0.06, "inc": .01},
+        cur_val =controls["min"]
+        l = [cur_val]
+        sInc = controls["inc"]
+        #print(f"sInc {sInc} type: {MySpinner.check_number_type(sInc)}")
+        if MySpinner.check_number_type(sInc) == "Integer":
+            while cur_val <= controls["max"]:
+                cur_val += controls["inc"]
+                l.append(cur_val)
+        else: # float
+            while cur_val <= controls["max"]:
+                cur_val += controls["inc"]
+                l.append(round(cur_val,2))
+        # put default in if not in list
+        MySpinner.insert_unique_sorted(l,default)
+        # convert all entries to strings
+        l = [str(n) for n in l]
+        return l

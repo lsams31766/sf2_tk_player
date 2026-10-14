@@ -1,8 +1,8 @@
 #sf2_effects_edit.py
 #screens to enable/disable effects and edit them
 import customtkinter as ctk
-from sf2_player_controls import load_default_reverb_settings
-from sf2_player_controls import load_default_chorus_settings
+from sf2_player_controls import load_default_reverb_settings, load_default_chorus_settings, reverb_controls, chorus_controls
+from sf2_player_effects import set_effect_configuration, set_effect_parameter
 from my_spinner import MySpinner
 
 class EffectsEnable:
@@ -13,16 +13,18 @@ class EffectsEnable:
         self.reverb_state = "off"
         self.chorus_state = "off"
 
+        # --- FIX 1: Store the settings persistently here so they survive screen changes ---
+        self.reverb_settings = load_default_reverb_settings()
+        self.chorus_settings = load_default_chorus_settings()
+
     def draw(self):
         print('ENABLE effects screen')
         self.ctx.clear_window()
         
         large_font = ("Helvetica", 16)
-        # Title at the top
         title_label = ctk.CTkLabel(self.ctx, text="EFFECTS Enable", font=self.ctx.font)
         title_label.pack(side="top", pady=(8, 4))
 
-        # Save button at the bottom
         btn_save = ctk.CTkButton(
             self.ctx, text="MENU", command=self.ctx.menu_screen, width=180
         )
@@ -35,7 +37,7 @@ class EffectsEnable:
         reverb_label = ctk.CTkLabel(
             reverb_container, text="Enable Reverb:", font=("Helvetica", 16)
         )
-        reverb_label.pack(side="left", padx=(0, 15))  # padx adds spacing between label and switch
+        reverb_label.pack(side="left", padx=(0, 15))
 
         self.reverb_switch_var = ctk.StringVar(value=self.reverb_state)
         reverb_toggle_switch = ctk.CTkSwitch(
@@ -73,131 +75,153 @@ class EffectsEnable:
             offvalue="off",
         )
         chorus_toggle_switch.pack(side="left")        
-        btn_edit_reverb = ctk.CTkButton(
+        btn_edit_chorus = ctk.CTkButton(
             chorus_container, text="EDIT", command=self.edit_chorus, width=100
         )
-        btn_edit_reverb.pack(side="right")
+        btn_edit_chorus.pack(side="right")
         self.ctx.update_idletasks()
 
     def reverb_switch_event(self):
         self.reverb_state = self.reverb_switch_var.get()
         print("Reverb Switch state:", self.reverb_state)
+        self.update_effects_state()
 
     def chorus_switch_event(self):
         self.chorus_state = self.chorus_switch_var.get()
         print("Chorus Switch state:", self.chorus_state)
+        self.update_effects_state()
 
     def edit_reverb(self):
         if self.reverb_state == 'off':
             return
-        edit_screen = EffectsEdit(self.ctx,'Reverb')
+        edit_screen = EffectsEdit(self.ctx, 'Reverb', self.reverb_settings)
         edit_screen.draw()
 
     def edit_chorus(self):
         if self.chorus_state == 'off':
             return
-        edit_screen = EffectsEdit(self.ctx,'Chorus')
+        edit_screen = EffectsEdit(self.ctx, 'Chorus', self.chorus_settings)
         edit_screen.draw()
 
-class EffectsEdit:
-    def __init__(self, ctx_instance, effects_type):
-        self.ctx = ctx_instance
+    def update_effects_state(self):
+        if self.reverb_state == 'off' and self.chorus_state == 'off':
+            set_effect_configuration('none')
+        if self.reverb_state == 'on' and self.chorus_state == 'off':
+            set_effect_configuration('reverb')
+        if self.reverb_state == 'off' and self.chorus_state == 'on':
+            set_effect_configuration('chorus')
+        if self.reverb_state == 'on' and self.chorus_state == 'on':
+            set_effect_configuration('chorus_reverb')
 
-        # Persistent state variables
+
+class EffectsEdit:
+    def __init__(self, ctx_instance, effects_type, settings_list):
+        self.ctx = ctx_instance
         self.effect_type = effects_type
+        self.settings = settings_list  
+        
         self.page = 0
         self.items_per_page = 4
-        if self.effect_type == 'Reverb':
-            self.settings = load_default_reverb_settings()
-        else:
-            self.settings = load_default_chorus_settings()
-
+        self.reverb_controls = reverb_controls 
+        self.chorus_controls = chorus_controls 
 
     def draw(self):
-        # TODO fix the effects_settings_list
-        # TODO fix the default value
-        # TODO handle each control change
         print('EDIT effects screen')
-        self.ctx.clear_window()
-        
+        self.ctx.clear_window()        
         large_font = ("Helvetica", 16)
-        # Title at the top
-        t = self.effect_type + ' Settings'
-        title_label = ctk.CTkLabel(self.ctx, text=t, font=self.ctx.font)
+        title_label = ctk.CTkLabel(self.ctx, text=f"{self.effect_type} Settings", font=self.ctx.font)
         title_label.pack(side="top", pady=(8, 4))
 
-        # Save button at the bottom
         btn_save = ctk.CTkButton(
             self.ctx, text="MENU", command=self.ctx.menu_screen, width=180
         )
         btn_save.pack(side="bottom", pady=8)
 
-        i = 0
-        spinners = []
-        effect_settings_list = [str(n) for n in range(0, 101, 10)]
-        self.nbr_effect_settings = len(effect_settings_list)
-        # Outer frame contains the settings spinners and up/down buttons
+        if self.effect_type == 'Reverb':
+            controls = self.reverb_controls
+        else:
+            controls = self.chorus_controls
+
         outer_frame = ctk.CTkFrame(self.ctx, fg_color="transparent")
         outer_frame.pack(expand=True, pady=2)
-        # Middle container frame
+        
         middle_frame = ctk.CTkFrame(outer_frame,  
             width=300,
             height=400,
             border_width=3,        
             border_color="black", 
             fg_color="transparent")
-
         middle_frame.pack(side="left", padx=(0, 10))
 
         btn_container = ctk.CTkFrame(outer_frame, fg_color="transparent")
         btn_container.pack(side="left", fill="y")
+
+        '''
         btn_page_up = ctk.CTkButton(
             btn_container, text="▲", font=large_font, width=50, height=80,
             command=self.page_up_event
         )
-        btn_page_up.pack(pady=(0, 10))
+        '''
+        self.btn_page_up = ctk.CTkButton(
+            btn_container, text="▲", font=large_font, width=50, height=80
+        )
+        self.btn_page_up.bind("<ButtonPress-1>", self.on_press)
+        self.btn_page_up.bind("<ButtonRelease-1>", self.on_release)
+        self.btn_page_up.pack(pady=(0, 10))
+        
         btn_page_down = ctk.CTkButton(
             btn_container, text="▼", font=large_font, width=50, height=80,
             command=self.page_down_event
         )
         btn_page_down.pack(pady=(10, 0))
 
-        # determine what to display
         first_index = self.page * self.items_per_page
         last_index = min(first_index + self.items_per_page, len(self.settings))
-        print(f'first_index {first_index} last_index {last_index}')
-        i = first_index
-        j = 0 # track the viewable spinners
+        
+        spinners = []
+        j = 0 
         while True:
-            item = self.settings[self.page * self.items_per_page + j]
-            lbl_name = item[0]
-            lbl_val = item[1]
+            index = self.page * self.items_per_page + j
+            if index >= len(self.settings):
+                break
+                
+            cur_controls = controls[index]
+            lbl_name = cur_controls["name"]
+            default = cur_controls["default"]
+            effect_settings_list = MySpinner.make_spinner_list(cur_controls, default)
+            
             temp_spinner = MySpinner(
-                    middle_frame, effect_settings_list, "50", large_font, lbl_name,
-                    command=self.temp_effect_edit, padx=10
+                    middle_frame, effect_settings_list, str(self.settings[index][1]), large_font, lbl_name,
+                    command=lambda val, idx=index: self.do_effect_edit(val, idx),
+                    padx=10, minsize=100
                 )
             spinners.append(temp_spinner)
             spinners[j].draw()
-            i += 1
             j += 1
-            if i >= last_index:
+            if j >= self.items_per_page or index + 1 >= len(self.settings):
                 break
 
-    def temp_effect_edit(self):
-        return
+    def on_press(self,evnt):
+        print('on_press')
+
+    def on_release(self,evnt):
+        print('on_release')
+
+    def do_effect_edit(self, value, index):
+        #print(f"Control at index {index} changed to value: {value}")
+        name = self.settings[index][0]
+        self.settings[index] = (name, value)
 
     def page_up_event(self):
-        print(f'page down self.page {self.page}')
+        print(f'page up self.page {self.page}')
         if self.page > 0:
             self.page -= 1
             self.draw()
 
     def page_down_event(self):
-        max_page = len(self.settings) // self.items_per_page
-        print(f'page up max_page {max_page}, self.page {self.page}')
+        max_page = (len(self.settings) - 1) // self.items_per_page
+        print(f'page down max_page {max_page}, self.page {self.page}')
         if self.page < max_page:
             self.page += 1 
             self.draw()
-
-
-
+    

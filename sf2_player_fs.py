@@ -212,8 +212,8 @@ def init_fluidsynth(effect_callback=None):
     t.start()
 
     # Execute passed audio effect callback if provided
-    #if effect_callback:
-    #    effect_callback()
+    if effect_callback:
+        effect_callback()
 
     try:
         print("Setting PipeWire default sink volume to 1.8...")

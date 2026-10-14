@@ -42,8 +42,8 @@ class App(ctk.CTk):
       
       # Removes window title bars and borders for a true kiosk/fullscreen look
       self.overrideredirect(True)
-      #init_fluidsynth(effect_callback=start_effects_containers)
-      init_fluidsynth()
+      init_fluidsynth(effect_callback=start_effects_containers)
+      #init_fluidsynth()
       self.program_list = fs_get_program_list()
 
     else:

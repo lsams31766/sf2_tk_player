@@ -19,6 +19,11 @@ sudo systemctl --global disable fluidsynth.service
 sudo systemctl stop fluidsynth.service
 sudo systemctl mask fluidsynth.service
 
+sudo apt install ladspa-sdk swh-plugins tap-plugins
+sudo apt install lilv-utils
+
+
+
 To Run Fluidsynth alone
 fluidsynth -a alsa -o audio.alsa.device=hw:0,0 /usr/share/sounds/sf2/FluidR3_GM.sf2
 
