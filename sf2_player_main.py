@@ -5,6 +5,7 @@ from sf2_player_effects import start_effects_containers, set_effect_configuratio
 import sys
 from sf2_global_edit import GlobalEdit
 from sf2_effects_edit import EffectsEnable
+from sf2_combi_edit import CombiEdit
 from touch_input import TouchState
 
 # Force all print statements to instantly write out without caching
@@ -56,6 +57,7 @@ class App(ctk.CTk):
 
     self.global_edit_screen = GlobalEdit(self)
     self.effects_enable_screen = EffectsEnable(self)
+    self.combi_edit_screen = CombiEdit(self)
 
     # Launch Function 1 (Splash Screen) on startup
     self.splash()
@@ -96,7 +98,7 @@ class App(ctk.CTk):
     btn_single.grid(row=0, column=0, padx=40, pady=10)
 
     btn_combi = ctk.CTkButton(
-        grid_frame, text="COMBI Mode", command=self.action_combi_mode, width=160
+        grid_frame, text="COMBI Mode", command=self.combi_edit_screen.draw, width=160
     )
     btn_combi.grid(row=0, column=1, padx=40, pady=10)
 

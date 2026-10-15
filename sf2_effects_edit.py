@@ -193,16 +193,15 @@ class EffectsEdit:
             if j >= self.items_per_page or index + 1 >= len(self.settings):
                 break
 
-    def on_press(self,delta):
-        print(f'on_press delta:{delta}')
-
-    def on_release(self,evnt):
-        print('on_release')
-
     def do_effect_edit(self, value, index):
         #print(f"Control at index {index} changed to value: {value}")
         name = self.settings[index][0]
         self.settings[index] = (name, value)
+        if self.effect_type == 'Reverb':
+            effect_type = 'reverb'
+        else:
+            effect_type = 'chorus'
+        set_effect_parameter(effect_type, name, value)
 
     def page_up_event(self):
         print(f'page up self.page {self.page}')
