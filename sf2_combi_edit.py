@@ -1,21 +1,14 @@
 # sf2_combi_edit.py
 
-#TODO: Add option button for NO split or layer
-#TODO: When split point is changed, re setup the layer and split
-#TODO: Persist the options choice and shoing of split point
-#TODO: Persist the program selction after it was changed
-#TODO: FIX The repeat_button - it keeps scrolling after quick tap
-
-
-
 import customtkinter as ctk
 from my_spinner import MySpinner
-from sf2_player_fs import fs_get_program_list, layer_sounds, split_keyboard
+from sf2_player_fs import fs_get_program_list, layer_sounds, split_keyboard,\
+    fs_turn_off_layering, turn_off_split_keyboard
 
 saved_prog1 = 0 # will be set after selection
-saved_prog1_name = "Yamaha Grand Piano"
+saved_prog1_name = "?"
 saved_prog2 = 1 # will be set after selection
-saved_prog2_name = "Bright Yamaha Grand"
+saved_prog2_name = "?"
 
 class CombiEdit:
     def __init__(self, ctx_instance):
@@ -23,82 +16,111 @@ class CombiEdit:
         # Store mode_var in __init__ so selection persists across redraws
         self.mode_var = ctk.StringVar(value="Layer")
         self.split_point_var = "60"  # Default split point (e.g., Middle C)
+        self.program_list = fs_get_program_list()
+
+    def _on_split_change(self, val):
+        self.split_point_var = val
+        prog1 = saved_prog1_name if 'saved_prog1_name' in globals() else "Piano 1"
+        prog2 = saved_prog2_name if 'saved_prog2_name' in globals() else "Honkey Tonk"
+        
+        layer_sounds(1, 0, saved_prog1, 2, 0, saved_prog2)
+        split_keyboard(int(self.split_point_var))
 
     def draw(self):
         self.ctx.clear_window()
         
-        # 1. Title
+        # 1. Menu Button (Pack FIRST with side="bottom" to anchor it at the bottom)
+        self.menu_btn = ctk.CTkButton(
+            self.ctx, text="Menu", width=180, command=self.ctx.menu_screen
+        )
+        self.menu_btn.pack(side="bottom", pady=8)
+
+        # 2. Title
         self.title_label = ctk.CTkLabel(
             self.ctx, text="COMBI Edit", font=self.ctx.font
         )
         self.title_label.pack(side="top", pady=(8, 4))
 
-        # 2. Mode Frame (Layer / Split)
-        self.mode_frame = ctk.CTkFrame(self.ctx, fg_color="transparent")
-        self.mode_frame.pack(anchor="w", pady=(20, 10), padx=10)        
         large_font = ("Helvetica", 24)
+
+        # Helper variables for saved programs
+        prog1 = saved_prog1_name if 'saved_prog1_name' in globals() else "Piano 1"
+        prog2 = saved_prog2_name if 'saved_prog2_name' in globals() else "Honkey Tonk"
+
+        # 3. Mode Frame (Layer / Split / None)
+        self.mode_frame = ctk.CTkFrame(self.ctx, fg_color="transparent")
+        self.mode_frame.pack(anchor="w", pady=(15, 10), padx=10)        
         
         self.mode_label = ctk.CTkLabel(
             self.mode_frame, text="Mode:", font=large_font
         )
         self.mode_label.pack(side="left", padx=(20, 15))    
-        
-        # Radio buttons trigger self.draw when clicked
-        self.layer_radio = ctk.CTkRadioButton(
-            self.mode_frame, 
-            text="Layer", 
-            variable=self.mode_var, 
-            value="Layer",
-            font=large_font,
-            border_width_checked=6,
-            border_width_unchecked=3,
-            command=self.draw
-        )
-        self.layer_radio.pack(side="left", padx=10)
-        
-        self.split_radio = ctk.CTkRadioButton(
-            self.mode_frame, 
-            text="Split", 
-            variable=self.mode_var, 
-            value="Split",
-            font=large_font,
-            border_width_checked=6,
-            border_width_unchecked=3,
-            command=self.draw
-        )
-        self.split_radio.pack(side="left", padx=10)
 
-        # 3. Conditional Split Spinner Row (Drawn only if "Split" is selected)
+        def select_mode(m):
+            self.mode_var.set(m)
+            
+            # Trigger backend functions based on selected mode
+            if m == "None":
+                fs_turn_off_layering()
+            elif m == "Layer":
+                layer_sounds(1, 0, saved_prog1, 2, 0, saved_prog2)
+                turn_off_split_keyboard()
+            elif m == "Split":
+                layer_sounds(1, 0, saved_prog1, 2, 0, saved_prog2)
+                split_keyboard(int(self.split_point_var))
+                
+            self.draw()
+
+        current_mode = self.mode_var.get()
+
+        for mode_name in ["Layer", "Split", "None"]:
+            is_selected = (current_mode == mode_name)
+            btn = ctk.CTkButton(
+                self.mode_frame,
+                text=mode_name,
+                font=large_font,
+                width=100,
+                height=40,
+                corner_radius=20,
+                fg_color="#1f6aa5" if is_selected else "transparent",
+                border_width=2,
+                border_color="#1f6aa5",
+                text_color="white" if is_selected else ("black", "white"),
+                command=lambda m=mode_name: select_mode(m)
+            )
+            btn.pack(side="left", padx=5)
+
+        # 4. Conditional Split Spinner Row (Drawn only if "Split" is selected)
         if self.mode_var.get() == "Split":
-            split_list = [str(i) for i in range(21, 109)]  # Piano key range A0 to C8
+            split_list = [str(i) for i in range(21, 109)]
             if self.split_point_var not in split_list:
                 self.split_point_var = "60"
             
             self.split_frame = ctk.CTkFrame(self.ctx, fg_color="transparent")
-            self.split_frame.pack(anchor="w", padx=10)        
+            self.split_frame.pack(anchor="w", padx=10, pady=(0, 10))        
+            
             self.split_spinner = MySpinner(
                 ctx_instance=self.split_frame,
                 spin_list=split_list,
                 start_value=self.split_point_var,
                 large_font=large_font,
                 lbl_text="Split Pt:",
-                command=lambda val: setattr(self, 'split_point_var', val),
+                command=self._on_split_change,
                 padx=20,
                 minsize=90
             )
             self.split_spinner.draw()
 
-        # 4. Prog1 Selection Frame
+        # 5. Prog1 Selection Frame
         self.prog1_frame = ctk.CTkFrame(self.ctx, fg_color="transparent")
-        self.prog1_frame.pack(anchor="w", pady=(15, 15), padx=10)
+        self.prog1_frame.pack(anchor="w", pady=(10, 10), padx=10)
         self.prog1_label = ctk.CTkLabel(
             self.prog1_frame, text="Prog1:", font=large_font
         )
         self.prog1_label.pack(side="left", padx=(20, 15))
         
         self.prog1_entry = ctk.CTkEntry(self.prog1_frame, width=220, font=large_font)
-        prog1_name = saved_prog1_name if 'saved_prog1_name' in globals() else "Piano 1"
-        self.prog1_entry.insert(0, prog1_name)
+        self.prog1_entry.insert(0, self.program_list[saved_prog1])
         self.prog1_entry.pack(side="left")
         
         self.prog1_button = ctk.CTkButton(
@@ -106,17 +128,16 @@ class CombiEdit:
         )
         self.prog1_button.pack(side="left", padx=15)
 
-        # 5. Prog2 Selection Frame
+        # 6. Prog2 Selection Frame
         self.prog2_frame = ctk.CTkFrame(self.ctx, fg_color="transparent")
-        self.prog2_frame.pack(anchor="w", pady=(0, 15), padx=10)
+        self.prog2_frame.pack(anchor="w", pady=(0, 10), padx=10)
         self.prog2_label = ctk.CTkLabel(
             self.prog2_frame, text="Prog2:", font=large_font
         )
         self.prog2_label.pack(side="left", padx=(20, 15))
         
         self.prog2_entry = ctk.CTkEntry(self.prog2_frame, width=220, font=large_font)
-        prog2_name = saved_prog2_name if 'saved_prog2_name' in globals() else "Honkey Tonk"
-        self.prog2_entry.insert(0, prog2_name)
+        self.prog2_entry.insert(0, self.program_list[saved_prog2])
         self.prog2_entry.pack(side="left")
         
         self.prog2_button = ctk.CTkButton(
@@ -124,11 +145,6 @@ class CombiEdit:
         )
         self.prog2_button.pack(side="left", padx=15)
 
-        # 6. Menu Button
-        self.menu_btn = ctk.CTkButton(
-            self.ctx, text="Menu", width=180, command=self.ctx.menu_screen
-        )
-        self.menu_btn.pack(side="bottom", pady=8)
 
     def change_prog1(self):
         if self.mode_var.get() == "Split":

@@ -156,9 +156,8 @@ def init_fluidsynth(effect_callback=None):
 
     fs.start(driver="jack")
 
-    sf_path = "/usr/share/sounds/sf2/"
     current_sf2_name = settings.get('soundfont_filename', 'default-GM.sf2')
-    sf_id = fs.sfload(os.path.join(sf_path, current_sf2_name))
+    sf_id = fs.sfload(os.path.join(sf2_directory, current_sf2_name))
     
     temp_filter = settings.get('midi_channel', 'OMNI')
     if temp_filter == "OMNI":
@@ -168,7 +167,7 @@ def init_fluidsynth(effect_callback=None):
     midi_transpose = settings.get('transpose', 0)
 
     if sf_id == -1:
-        print(f"Error: Could not load SoundFont at {sf_path}")
+        print(f"Error: Could not load SoundFont at {sf2_directory}")
         exit(1)
 
     current_sf_id = sf_id
@@ -414,15 +413,15 @@ def get_sf_file_index():
             return index 
     return 0
         
-def load_sf2_file(selected_sf2_index):
+def load_sf2_file(filename):
     global current_sf_id, current_bank, current_program, current_instrument_name, current_sf2_name
-    filename = get_sf2_filenames()[selected_sf2_index]
     current_sf2_name = filename
     old_sf_id = current_sf_id
     full_path = os.path.join(sf2_directory, filename) 
     current_sf_id = fs.sfload(full_path)
     fs.program_select(0, current_sf_id, 0, 0)
     fs.sfunload(old_sf_id)
+    print(f'loaded {current_sf2_name} unloaded {old_sf_id}')
     current_bank = 0 
     current_program = 0
     lookup_prog_name()

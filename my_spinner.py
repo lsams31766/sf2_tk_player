@@ -10,7 +10,7 @@ from repeat_button import RepeatButton
 
 class MySpinner:
     def __init__(self, ctx_instance, spin_list, start_value, large_font, 
-                 lbl_text, command=None, padx=20, minsize=20):
+                 lbl_text, command=None, padx=20, minsize=20, entry_width=100):
         self.ctx = ctx_instance
         if start_value not in spin_list:
             print(f'ERROR: {start_value} not in list')
@@ -22,6 +22,7 @@ class MySpinner:
         self.command = command
         self.padx = padx
         self.minsize = minsize
+        self.entry_width = entry_width
         
         # Debounce tracking to prevent double-firing on quick taps
         self.last_change_time = 0
@@ -41,7 +42,7 @@ class MySpinner:
         label = ctk.CTkLabel(row_frame, text=self.lbl_text, font=self.large_font)
         label.grid(row=0, column=0, pady=5, padx=(0, 10), sticky="e")
         
-        self.entry = ctk.CTkEntry(row_frame, width=100, font=self.large_font)
+        self.entry = ctk.CTkEntry(row_frame, width=self.entry_width, font=self.large_font)
         self.entry.grid(row=0, column=1, sticky="w") 
         self._set_value(self.spin_list[self.cur_index])                             
         
